@@ -1,0 +1,28 @@
+
+import asyncio
+import os
+from aiogram import Bot, Dispatcher, F
+from aiogram.types import Message
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+SUPPORT_CHAT_ID = int(os.getenv("SUPPORT_CHAT_ID"))
+
+bot = Bot(BOT_TOKEN)
+dp = Dispatcher()
+
+@dp.message(F.chat.type == "private")
+async def teen(message: Message):
+    await message.forward(SUPPORT_CHAT_ID)
+    await message.answer("Сообщение передано. Жди ответа 💌")
+
+@dp.message(F.chat.id == SUPPORT_CHAT_ID)
+async def support(message: Message):
+    if message.reply_to_message and message.reply_to_message.forward_from:
+        teen_id = message.reply_to_message.forward_from.id
+        await message.copy_to(teen_id)
+        await message.reply("✅ Отправлено")
+
+async def main():
+    await dp.start_polling(bot)
+
+asyncio.run(main())
